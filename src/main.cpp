@@ -203,6 +203,7 @@ void loop()
         digitalWrite(PUL, LOW);
         delayMicroseconds(50);
         N = N + 0.01;
+        M5.Lcd.fillRect(80, 30, 140, 60, BLACK);
         M5.Lcd.setTextSize(4);
         M5.Lcd.setCursor(80, 60);
         M5.Lcd.println(N);
@@ -219,6 +220,7 @@ void loop()
         digitalWrite(PUL, LOW);
         delayMicroseconds(50);
         N = N - 0.01;
+        M5.Lcd.fillRect(80, 30, 140, 60, BLACK);
         M5.Lcd.setTextSize(4);
         M5.Lcd.setCursor(80, 60);
         M5.Lcd.println(N);
@@ -245,6 +247,7 @@ void loop()
         digitalWrite(PUL, LOW);
         delayMicroseconds(50);
         N = N + 0.01;
+        M5.Lcd.fillRect(80, 30, 140, 60, BLACK);
         M5.Lcd.setTextSize(4);
         M5.Lcd.setCursor(80, 60);
         M5.Lcd.println(N);
@@ -261,6 +264,7 @@ void loop()
         digitalWrite(PUL, LOW);
         delayMicroseconds(50);
         N = N - 0.01;
+        M5.Lcd.fillRect(80, 30, 140, 60, BLACK);
         M5.Lcd.setTextSize(4);
         M5.Lcd.setCursor(80, 60);
         M5.Lcd.println(N);
