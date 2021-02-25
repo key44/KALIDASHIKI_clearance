@@ -16,7 +16,7 @@ M5Stackでコマとコマの隙間をステッピングモータを使って調�
 
 ## ~ TB6600 Stepper Motor Driver ~
 
-ドライバの詳細は[リンク](https://www.google.co.jp/)を参考にしました。
+ドライバの詳細は[リンク](https://qiita.com/garyo/items/6953494d2ef8620117d0)を参考にしました。
 
     
 
