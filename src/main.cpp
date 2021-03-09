@@ -2,26 +2,40 @@
 #include <LiquidCrystal_I2C.h>
  
 LiquidCrystal_I2C lcd(0x27,16,2);
-/*
-LCDは下記の通りの配線で
-SDA → A4
-SCL → A5
-*/
+/**************LCD配線******************/
+  //SDA → A4
+  //SCL → A5
+/**************************************/
 
-int DIR = 13;  //define Direction pin
-int ENA = 12;  //define Enable Pin
-int PUL = 11;  //define Pulse pin
-int HOL = 10;  //home&Origine status LED
 
+/********************モータドライバ配線と設定***********************/
+  //下記プログラム参照で配線の事
+  //SW1の1~3番ピンはON(ステップ分割数1・1パルス1.8°・分解能200)とする。
+  //SW1の4番ピンはOFF(1パルス入力方式)
+  //駆動電流減衰率設定ON(節電モードは制御しません)
+  //停止電流設定は説明書の通り、SW1を6=OFF,7=ON,8=ONとする。
+  //駆動電流設定は説明書の通り、SW2をB(2.0A)設定とする。
+
+  //ドライバは、1パルス設定・駆動電流制御信号OFF・停止電流設定信号OFF
+  //励磁タイミング信号の使用なし・モータ停止電流設定信号なし
+  //として制御します。
+
+int DIR = 13;  //回転方向信号
+int ENA = 12;  //出力電流イネーブル信号
+int PUL = 11;  //回転パルス信号
+
+/*****************************************************************/
+
+/************************入力信号読み込み***************************/
 int H_sw = 9;  //home end swich
 int P_sw = 8;  //プラススイッチ読み込み
 int M_sw = 7;  //マイナススイッチ読み込み
 int S_sw = 6;  //セレクトスイッチ読み込み
+/*****************************************************************/
 
-
-int C = 0;
-float N = 0;
-int G = 1; //モータのギヤ比xマイクロステップ数 ギヤ,マイクロステップがない場合 G=1
+int C = 0; //モード切り替え用
+float N = 0;//現在地表示用
+int G = 1; //モータのギヤ比を代入
 
 void home()
 {
@@ -40,7 +54,7 @@ void home()
   }
   delay(100);
 
-  for (int h = 0; h < 1000*G; h++)
+  for (int i = 0; i < 1000*G; i++)
   {
     digitalWrite(DIR, LOW);
     digitalWrite(ENA, HIGH);
@@ -74,12 +88,34 @@ void home()
   lcd.print(N);
 }
 
+void test()//test mode CW,CCW1回転を繰り返す。
+{
+  for (int i = 0; i < 200*G; i++)
+  {
+    digitalWrite(DIR, HIGH);
+    digitalWrite(ENA, HIGH);
+    digitalWrite(PUL, HIGH);
+    delayMicroseconds(50);
+    digitalWrite(PUL, LOW);
+    delayMicroseconds(50);
+  }
+  delay(100);
+  for (int i = 0; i < 200*G; i++)
+  {
+    digitalWrite(DIR, LOW);
+    digitalWrite(ENA, HIGH);
+    digitalWrite(PUL, HIGH);
+    delayMicroseconds(50);
+    digitalWrite(PUL, LOW);
+    delayMicroseconds(50);
+  }
+}
+
 void setup()
 {
   pinMode(PUL, OUTPUT);
   pinMode(DIR, OUTPUT);
   pinMode(ENA, OUTPUT);
-  pinMode(HOL, OUTPUT);
   pinMode(P_sw, INPUT_PULLUP);
   pinMode(M_sw, INPUT_PULLUP);
   pinMode(S_sw, INPUT_PULLUP);
@@ -93,6 +129,7 @@ void setup()
 
 void loop()
 {
+  test();//test mode正式実装の場合コメントアウトしてください。
 
   if (!digitalRead(S_sw))
   {
