@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
+#include <Wire.h> 
  
 LiquidCrystal_I2C lcd(0x27,16,2);
 /**************LCD配線******************/
@@ -35,53 +36,43 @@ int S_sw = 6;  //セレクトスイッチ読み込み
 
 int C = 0; //モード切り替え用
 float N = 0;//現在地表示用
-int G = 1; //モータのギヤ比を代入
+int G = 10; //モータのギヤ比を代入
 
 void home()
 {
   while (digitalRead(H_sw))
   {
     digitalWrite(DIR, HIGH);
-    digitalWrite(ENA, HIGH);
+    digitalWrite(ENA, LOW);
     digitalWrite(PUL, HIGH);
-    delayMicroseconds(50);
+    delayMicroseconds(800);
     digitalWrite(PUL, LOW);
-    delayMicroseconds(50);
-    N = N - 0.01;
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print(N);
+    delayMicroseconds(800);
+    
   }
-  delay(100);
+  
 
-  for (int i = 0; i < 1000*G; i++)
+  for (int i = 0; i < 300*G; i++)
   {
     digitalWrite(DIR, LOW);
-    digitalWrite(ENA, HIGH);
+    digitalWrite(ENA, LOW);
     digitalWrite(PUL, HIGH);
-    delayMicroseconds(50);
+    delayMicroseconds(800);
     digitalWrite(PUL, LOW);
-    delayMicroseconds(50);
-    N = N + 0.01;
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print(N);
+    delayMicroseconds(800);
+    
   }
 
-  while (digitalRead(H_sw))
+  for (int i = 0; i < 300*G; i++)
   {
     digitalWrite(DIR, HIGH);
-    digitalWrite(ENA, HIGH);
+    digitalWrite(ENA, LOW);
     digitalWrite(PUL, HIGH);
-    delayMicroseconds(50);
+    delayMicroseconds(800);
     digitalWrite(PUL, LOW);
-    delayMicroseconds(50);
-    N = N - 0.01;
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print(N);
+    delayMicroseconds(800);
   }
-  delay(100);
+  
   N = 0;
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -93,21 +84,21 @@ void test()//test mode CW,CCW1回転を繰り返す。
   for (int i = 0; i < 200*G; i++)
   {
     digitalWrite(DIR, HIGH);
-    digitalWrite(ENA, HIGH);
+    digitalWrite(ENA, LOW);
     digitalWrite(PUL, HIGH);
-    delayMicroseconds(50);
+    delayMicroseconds(800);
     digitalWrite(PUL, LOW);
-    delayMicroseconds(50);
+    delayMicroseconds(800);
   }
   delay(100);
   for (int i = 0; i < 200*G; i++)
   {
     digitalWrite(DIR, LOW);
-    digitalWrite(ENA, HIGH);
+    digitalWrite(ENA, LOW);
     digitalWrite(PUL, HIGH);
-    delayMicroseconds(50);
+    delayMicroseconds(800);
     digitalWrite(PUL, LOW);
-    delayMicroseconds(50);
+    delayMicroseconds(800);
   }
 }
 
@@ -123,22 +114,25 @@ void setup()
   lcd.init(); 
   lcd.backlight();
   lcd.setCursor(0, 0);
+  Serial.begin(115200);
 
-  //home();//電源投入時自動で原点復帰する場合コメントアウト
+  //home();
+  //電源投入時自動で原点復帰する場合コメントアウト
 }
 
 void loop()
 {
-  test();//test mode正式実装の場合コメントアウトしてください。
+  //test();//test mode正式実装の場合コメントアウトしてください。
 
   if (!digitalRead(S_sw))
   {
     C++;
+    delay(500);
   }
   if (!digitalRead(H_sw))
   {
     lcd.setCursor(0, 10);
-    lcd.print("HOME!");
+    lcd.print("HOME");
   }
 
   switch (C)
@@ -156,8 +150,11 @@ void loop()
       lcd.print("                ");
       lcd.print(N);
     }
-    lcd.setCursor(0, 1);
+    lcd.setCursor(0, 0);
     lcd.print("mode:Home&Origin");
+    Serial.println("mode:Home&Origin");
+    lcd.setCursor(0, 1);
+    lcd.print(N);
     break;
 
   case 1: //0.1mm
@@ -165,36 +162,45 @@ void loop()
     {
       for (int i = 0; i < 10*G; i++)
       {
-        digitalWrite(DIR, LOW);
-        digitalWrite(ENA, HIGH);
+        digitalWrite(DIR, HIGH);
+        digitalWrite(ENA, LOW);
         digitalWrite(PUL, HIGH);
-        delayMicroseconds(50);
+        delayMicroseconds(800);
         digitalWrite(PUL, LOW);
-        delayMicroseconds(50);
-        N = N + 0.01;
-        lcd.setCursor(0, 0);
-        lcd.print("                ");
-        lcd.print(N);
+        delayMicroseconds(800);
+        
+        N = N + (0.01/G);
+        
       }
     }
     if (!digitalRead(M_sw) && digitalRead(H_sw))
     {
       for (int i = 0; i < 10*G; i++)
       {
-        digitalWrite(DIR, HIGH);
-        digitalWrite(ENA, HIGH);
+        digitalWrite(DIR, LOW);
+        digitalWrite(ENA, LOW);
         digitalWrite(PUL, HIGH);
-        delayMicroseconds(50);
+        delayMicroseconds(800);
         digitalWrite(PUL, LOW);
-        delayMicroseconds(50);
-        N = N - 0.01;
-        lcd.setCursor(0, 0);
-        lcd.print("                ");
-        lcd.print(N);
+        delayMicroseconds(800);
+        N = N - (0.01/G);
+       if (!digitalRead(H_sw))
+       {
+         break;
+       }
+       
       }
-    lcd.setCursor(0, 1);
-    lcd.print("mode:0.1mm");
+    
+
     }
+    lcd.setCursor(0, 0);
+    lcd.print("mode:0.1mm      ");
+    lcd.setCursor(0, 1);
+    
+    lcd.print(N);
+    
+    Serial.print("mode:0.1mm ");
+    Serial.println(N);
     break;
 
   case 2: //1.0mm
@@ -203,36 +209,42 @@ void loop()
     {
       for (int i = 0; i < 100*G; i++)
       {
-        digitalWrite(DIR, LOW);
-        digitalWrite(ENA, HIGH);
+        digitalWrite(DIR, HIGH);
+        digitalWrite(ENA, LOW);
         digitalWrite(PUL, HIGH);
-        delayMicroseconds(50);
+        delayMicroseconds(800);
         digitalWrite(PUL, LOW);
-        delayMicroseconds(50);
-        N = N + 0.01;
-        lcd.setCursor(0, 0);
-        lcd.print("                ");
-        lcd.print(N);
+        delayMicroseconds(800);
+        N = N + (0.01/G);
+        
       }
     }
     if (!digitalRead(M_sw) && digitalRead(H_sw))
     {
       for (int i = 0; i < 100*G; i++)
       {
-        digitalWrite(DIR, HIGH);
-        digitalWrite(ENA, HIGH);
+        digitalWrite(DIR, LOW);
+        digitalWrite(ENA, LOW);
         digitalWrite(PUL, HIGH);
-        delayMicroseconds(50);
+        delayMicroseconds(800);
         digitalWrite(PUL, LOW);
-        delayMicroseconds(50);
-        N = N - 0.01;
-        lcd.setCursor(0, 0);
-        lcd.print("                ");
-        lcd.print(N);
+        delayMicroseconds(800);
+        N = N - (0.01/G);
+        if (!digitalRead(H_sw))
+       {
+         break;
+       }
       }
-    lcd.setCursor(0, 1);
-    lcd.print("mode:1.0mm");
+    
     }
+    
+    lcd.setCursor(0, 1);
+    
+    lcd.print(N);
+    lcd.setCursor(0, 0);
+    lcd.print("mode:1.0mm      ");
+    Serial.print("mode:1.0mm ");
+    Serial.println(N);
     break;
 
   case 3: //10mm
@@ -240,41 +252,46 @@ void loop()
     {
       for (int i = 0; i < 1000*G; i++)
       {
-        digitalWrite(DIR, LOW);
-        digitalWrite(ENA, HIGH);
+        digitalWrite(DIR, HIGH);
+        digitalWrite(ENA, LOW);
         digitalWrite(PUL, HIGH);
-        delayMicroseconds(50);
+        delayMicroseconds(800);
         digitalWrite(PUL, LOW);
-        delayMicroseconds(50);
-        N = N + 0.01;
-        lcd.setCursor(0, 0);
-      lcd.print("                ");
-      lcd.print(N);
+        delayMicroseconds(800);
+        N = N + (0.01/G);
+        
       }
     }
     if (!digitalRead(M_sw) && digitalRead(H_sw))
     {
       for (int i = 0; i < 1000*G; i++)
       {
-        digitalWrite(DIR, HIGH);
-        digitalWrite(ENA, HIGH);
+        digitalWrite(DIR, LOW);
+        digitalWrite(ENA, LOW);
         digitalWrite(PUL, HIGH);
-        delayMicroseconds(50);
+        delayMicroseconds(800);
         digitalWrite(PUL, LOW);
-        delayMicroseconds(50);
-        N = N - 0.01;
-        lcd.setCursor(0, 0);
-        lcd.print("                ");
-        lcd.print(N);
+        delayMicroseconds(800);
+        N = N - (0.01/G);
+        if (!digitalRead(H_sw))
+       {
+         break;
+       }
       }
-    lcd.setCursor(0, 1);
-    lcd.print("mode:10mm");
+    
     }
+    
+    lcd.setCursor(0, 1);
+    
+    lcd.print(N);
+    lcd.setCursor(0, 0);
+    lcd.print("mode:10mm      ");
+    Serial.print("mode:10mm ");
+    Serial.println(N);
     break;
 
   default:
     C = 0;
     break;
   }
-  delay(100);
 }
